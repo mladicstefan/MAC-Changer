@@ -47,6 +47,36 @@ static int set_interface_state(const char *ifname, int state){
 
 }
 
+
+static int set_mac_address(const char *ifname, const unsigned char *mac_addr){
+  
+  int fd;
+  struct ifreq ifr;
+
+  fd = socket(AF_INET,SOCK_DGRAM,0);
+  if (fd < 0){
+    perror("socket");
+    return -1;
+  }
+
+  memset(&ifr,0,sizeof(ifr));
+  strncpy(ifr.ifr_name,ifname,IFNAMSIZ - 1);
+  
+  ifr.ifr_hwaddr.sa_family = ARPHRD_ETHER;
+  memcpy(ifr.ifr_hwaddr.sa_data, mac_addr, 6);
+
+  if(ioctl(fd, SIOCSIFHWADDR, &ifr) < 0){
+    perror("ioctl(SIOCSIFHWADDR)");
+    close(fd);
+    return -1;
+  }
+
+  close(fd);
+  return 0;
+
+}
+
+
 int main(int argc, char *argv[]){
   if (argc != 3){
     fprintf(stderr,"Usage: %s <interface> <new_mac>\n",argv[0]);
