@@ -82,9 +82,50 @@ int main(int argc, char *argv[]){
     fprintf(stderr,"Usage: %s <interface> <new_mac>\n",argv[0]);
     fprintf(stderr, "Example MAC format: 00:11:22:33:44:55\n");
     return EXIT_FAILURE;
+  
+  }
+  
+  const char *ifname = argv[1];
+  const char *mac_str = argv[2];
+
+  unsigned char mac_bytes[6];
+  int values[6];
+  if (sscanf(mac_str, "%x:%x:%x:%x:%x:%x",
+               &values[0], &values[1], &values[2],
+               &values[3], &values[4], &values[5]) != 6) {
+        fprintf(stderr, "Invalid MAC address format.\n");
+        return EXIT_FAILURE;
+    }
+
+  for (int i = 0; i < 6; i++){mac_bytes[i] = (unsigned char) values[i];}
+
+  //workflow
+  // 1) Bring interface down
+  if (set_interface_state(ifname, 0) < 0) {
+     fprintf(stderr, "Failed to bring interface %s down.\n", ifname);
+     return EXIT_FAILURE;
   }
 
+    // 2) Set new MAC address
+  if (set_mac_address(ifname, mac_bytes) < 0) {
+    fprintf(stderr, "Failed to set MAC address on interface %s.\n", ifname);
+      
+    set_interface_state(ifname, 1);
+    return EXIT_FAILURE;
+  }
 
+    // 3) Bring interface up again
+  if (set_interface_state(ifname, 1) < 0) {
+    fprintf(stderr, "MAC changed, but failed to bring interface %s up.\n", ifname);
+    return EXIT_FAILURE;
+  }
+
+  printf("Successfully changed MAC of %s to %s\n", ifname, mac_str);
+  return EXIT_SUCCESS;
 }
+
+
+
+
 
 
