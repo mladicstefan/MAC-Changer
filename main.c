@@ -1,22 +1,60 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <stdint.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <net/if.h>
+#include <linux/if_arp.h>
+#include <arpa/inet.h>
 
 
-void generate_random_mac(uint8_t mac[6]){
-  mac[0] = ((uint8_t)(rand() % 256 ) & 0xFE) | 0x02;
-  for (int i = 1; i<6; i++){
-    mac[i] = (uint8_t)(rand() % 256);
+
+
+
+static int set_interface_state(const char *ifname, int state){
+  int fd;
+  struct ifreq ifr;
+
+  fd = socket(AF_INET,SOCK_DGRAM,0);
+  if (fd < 0){
+    perror("socket");
+    return -1;
   }
+
+  memset(&ifr,0,sizeof(ifr));
+  strncpy(ifr.ifr_name, ifname, IFNAMSIZ - 1);
+
+  if (ioctl(fd,SIOCGIFFLAGS, &ifr)<0){
+    perror("ioctl(SIOCGIFFLAGS)");
+    close(fd);
+    return -1;
+  }
+  
+  if (state){ ifr.ifr_flags |= IFF_UP;}
+  else {ifr.ifr_flags |= ~IFF_UP;}
+
+  if (ioctl(fd,SIOCSIFFLAGS,&ifr) < 0){
+    perror("ioctl(SIOCSIFFLAGS)");
+    close(fd);
+    return -1;
+  }
+
+  close(fd);
+  return 0;
+
+
 }
 
-int main(void){
-  uint8_t mac[6];
-  srand((unsigned)time(NULL));
-  generate_random_mac(mac);
-  printf("Random MAC address: %02x:%02x:%02x:%02x:%02x:%02x\n",
-           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    return 0;
+int main(int argc, char *argv[]){
+  if (argc != 3){
+    fprintf(stderr,"Usage: %s <interface> <new_mac>\n",argv[0]);
+    fprintf(stderr, "Example MAC format: 00:11:22:33:44:55\n");
+    return EXIT_FAILURE;
+  }
+
+
 }
+
 
