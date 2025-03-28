@@ -1,6 +1,13 @@
 # MAC-changer
 
-A simple Linux CLI tool for changing MAC addresses of network interfaces using standard C system calls.
+A simple Linux CLI tool for changing MAC addresses of network interfaces using standard C system calls. Designed as a learning project for C in cybersecurity.
+
+## Usage
+Clone the repo or download the .zip
+1. Run unzip MAC-Changer-main.zip
+2. Run ifconfig and determine your network interface (eth0,wlan0 or wireguard if using VPN)
+3. Run sudo ./altermac <interface> <newmacaddr>
+4. You're Set!
 
 ## License
 
