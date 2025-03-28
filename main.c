@@ -33,7 +33,7 @@ static int set_interface_state(const char *ifname, int state){
   }
   
   if (state){ ifr.ifr_flags |= IFF_UP;}
-  else {ifr.ifr_flags |= ~IFF_UP;}
+  else {ifr.ifr_flags &= ~IFF_UP;}
 
   if (ioctl(fd,SIOCSIFFLAGS,&ifr) < 0){
     perror("ioctl(SIOCSIFFLAGS)");
